@@ -286,8 +286,9 @@ const renderHtmlContent = (doc: jsPDF, html: string, x: number, startY: number, 
       });
       return;
     } else {
-      const isBold = el.querySelector('strong, b') || el.style.fontWeight === 'bold' || tag === 'b';
-      const isItalic = el.querySelector('em, i') || el.style.fontStyle === 'italic' || tag === 'i';
+      const htmlEl = el as HTMLElement;
+      const isBold = el.querySelector('strong, b') || htmlEl.style.fontWeight === 'bold' || tag === 'b';
+      const isItalic = el.querySelector('em, i') || htmlEl.style.fontStyle === 'italic' || tag === 'i';
       doc.setFontSize(11);
       doc.setFont('helvetica', isBold && isItalic ? 'bold' : isBold ? 'bold' : isItalic ? 'italic' : 'normal');
 
