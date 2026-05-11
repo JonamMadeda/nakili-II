@@ -5,6 +5,7 @@ import { Plus, Trash2, Search, FileDown, MoreVertical } from 'lucide-react';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { cn } from '@/lib/utils';
 import { jsPDF } from 'jspdf';
+import { useLoading } from '@/components/global-loader';
 
 interface Page {
   id: string;
@@ -19,7 +20,7 @@ interface BookEditorProps {
   onBack?: () => void;
 }
 
-export function NoteEditor({ bookId, onBack }: BookEditorProps) {
+export function BookEditor({ bookId, onBack }: BookEditorProps) {
   const [book, setBook] = useState<{ id: string; title: string } | null>(null);
   const [pages, setPages] = useState<Page[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +31,15 @@ export function NoteEditor({ bookId, onBack }: BookEditorProps) {
   const [wordLimitWarning, setWordLimitWarning] = useState<string | null>(null);
   const [pageLimitWarning, setPageLimitWarning] = useState<boolean>(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { withLoading } = useLoading();
+
+  useEffect(() => {
+    if (openMenuPageId) {
+      const handler = () => setOpenMenuPageId(null);
+      document.addEventListener('click', handler);
+      return () => document.removeEventListener('click', handler);
+    }
+  }, [openMenuPageId]);
 
   const MAX_WORDS_PER_PAGE = 3000;
   const MAX_PAGES_PER_BOOK = 1000;
@@ -52,7 +62,7 @@ export function NoteEditor({ bookId, onBack }: BookEditorProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/notes/${bookId}`);
+      const response = await fetch(`/api/books/${bookId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -73,7 +83,7 @@ export function NoteEditor({ bookId, onBack }: BookEditorProps) {
 
     setIsSaving(true);
     try {
-      await fetch(`/api/notes/${bookId}`, {
+      await withLoading(fetch(`/api/books/${bookId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -84,7 +94,7 @@ export function NoteEditor({ bookId, onBack }: BookEditorProps) {
             content: p.content,
           })),
         }),
-      });
+      }), 'Saving changes...');
     } catch (error) {
       console.error('Error saving book:', error);
     } finally {
@@ -137,13 +147,13 @@ export function NoteEditor({ bookId, onBack }: BookEditorProps) {
     }
 
     try {
-      const response = await fetch(`/api/notes/${bookId}`, {
+      const response = await withLoading(fetch(`/api/books/${bookId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pages: [...pages.map((p) => ({ id: p.id, title: p.title, content: p.content })), { title: `Page ${pages.length + 1}`, content: '' }],
         }),
-      });
+      }), 'Adding page...');
       if (response.ok) {
         await fetchBook();
       }
@@ -157,9 +167,9 @@ export function NoteEditor({ bookId, onBack }: BookEditorProps) {
 
     if (confirm('Are you sure you want to delete this page?')) {
       try {
-        await fetch(`/api/notes/${bookId}/pages/${pageId}`, {
+        await withLoading(fetch(`/api/books/${bookId}/pages/${pageId}`, {
           method: 'DELETE',
-        });
+        }), 'Deleting page...');
         setPages((prev) => prev.filter((page) => page.id !== pageId));
       } catch (error) {
         console.error('Error deleting page:', error);
@@ -469,9 +479,9 @@ const handleExportSinglePagePDF = (page: Page) => {
                       <MoreVertical className="w-4 h-4" />
                     </button>
                     {openMenuPageId === page.id && (
-                      <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-10 min-w-[140px]">
+                      <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50 min-w-[140px]">
                         <button
-                          onClick={() => handleExportSinglePagePDF(page)}
+                          onClick={() => { setOpenMenuPageId(null); handleExportSinglePagePDF(page); }}
                           className="w-full px-3 py-2 text-sm text-left text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                         >
                           <FileDown className="w-3.5 h-3.5" />
@@ -479,7 +489,7 @@ const handleExportSinglePagePDF = (page: Page) => {
                         </button>
                         {pages.length > 1 && (
                           <button
-                            onClick={() => handleDeletePage(page.id)}
+                            onClick={() => { setOpenMenuPageId(null); handleDeletePage(page.id); }}
                             className="w-full px-3 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

@@ -86,7 +86,7 @@ src/
 ├── components/
 │   ├── ui/                 # Reusable UI components
 │   ├── sidebar.tsx         # Sidebar component
-│   ├── note-editor.tsx     # Note editor component
+│   ├── book-editor.tsx     # Book editor component
 │   └── rich-text-editor.tsx # TipTap editor
 ├── db/
 │   ├── schema.ts           # Database schema

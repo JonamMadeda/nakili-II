@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNoteById, updateNote, deleteNote, deletePage } from '@/db';
+import { getBookById, updateBook, deleteBook } from '@/db';
 
 function getUserId(request: NextRequest): string | null {
   return request.cookies.get('userId')?.value || null;
@@ -16,15 +16,15 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const note = await getNoteById(id, userId);
-    if (!note) {
-      return NextResponse.json({ error: 'Note not found' }, { status: 404 });
+    const book = await getBookById(id, userId);
+    if (!book) {
+      return NextResponse.json({ error: 'Book not found' }, { status: 404 });
     }
 
-    return NextResponse.json(note, { status: 200 });
+    return NextResponse.json(book, { status: 200 });
   } catch (error) {
-    console.error('Error fetching note:', error);
-    return NextResponse.json({ error: 'Failed to fetch note' }, { status: 500 });
+    console.error('Error fetching book:', error);
+    return NextResponse.json({ error: 'Failed to fetch book' }, { status: 500 });
   }
 }
 
@@ -42,15 +42,15 @@ export async function PUT(
     const body = await request.json();
     const { title, pages: updatedPages } = body;
 
-    const result = await updateNote(id, userId, title, updatedPages);
+    const result = await updateBook(id, userId, title, updatedPages);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error updating note:', error);
-    return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
+    console.error('Error updating book:', error);
+    return NextResponse.json({ error: 'Failed to update book' }, { status: 500 });
   }
 }
 
@@ -65,14 +65,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const result = await deleteNote(id, userId);
+    const result = await deleteBook(id, userId);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting note:', error);
-    return NextResponse.json({ error: 'Failed to delete note' }, { status: 500 });
+    console.error('Error deleting book:', error);
+    return NextResponse.json({ error: 'Failed to delete book' }, { status: 500 });
   }
 }

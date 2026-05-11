@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Plus, ChevronLeft, Settings, MoreVertical, BookOpen, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLoading } from '@/components/global-loader';
 
 interface Book {
   id: string;
@@ -38,10 +39,25 @@ export function Sidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { withLoading } = useLoading();
+
+  useEffect(() => {
+    if (openMenuId) {
+      const handler = (e: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+          setOpenMenuId(null);
+        }
+      };
+      document.addEventListener('mousedown', handler);
+      return () => document.removeEventListener('mousedown', handler);
+    }
+  }, [openMenuId]);
 
   const fetchBooks = useCallback(async () => {
     try {
-      const response = await fetch('/api/notes');
+      const response = await fetch('/api/books');
       if (response.ok) {
         const data = await response.json();
         setBooks(data.books || data.notes || []);
@@ -59,14 +75,15 @@ export function Sidebar({
 
   const handleCreateBook = async () => {
     try {
-      const response = await fetch('/api/notes', {
+      const response = await withLoading(fetch('/api/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-      });
+      }), 'Creating book...');
       if (response.ok) {
         const data = await response.json();
-        await fetchBooks();
-        onBookCreated(data.book?.id || data.note?.id);
+        const newBook = data.book || data.note;
+        setBooks(prev => [newBook, ...prev]);
+        onBookCreated(newBook.id);
       }
     } catch (error) {
       console.error('Error creating book:', error);
@@ -76,10 +93,13 @@ export function Sidebar({
   const handleDeleteBook = async (id: string) => {
     if (confirm('Are you sure you want to delete this book?')) {
       try {
-        const response = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+        const response = await withLoading(fetch(`/api/books/${id}`, { method: 'DELETE' }), 'Deleting book...');
         if (response.ok) {
-          await fetchBooks();
+          setBooks(prev => prev.filter(b => b.id !== id));
           onDeleteBook(id);
+        } else {
+          const data = await response.json();
+          console.error('Delete failed:', data);
         }
       } catch (error) {
         console.error('Error deleting book:', error);
@@ -210,7 +230,13 @@ export function Sidebar({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setOpenMenuId(openMenuId === book.id ? null : book.id);
+                            if (openMenuId === book.id) {
+                              setOpenMenuId(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                              setOpenMenuId(book.id);
+                            }
                           }}
                           className="p-1.5 rounded-lg sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-hover)] opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90"
                         >
@@ -236,34 +262,6 @@ export function Sidebar({
                       </div>
                     </div>
                   </div>
-                  {openMenuId === book.id && (
-                    <div
-                      className="absolute right-3 top-14 bg-[var(--color-sidebar-active)] rounded-xl shadow-2xl border border-[var(--color-sidebar-border)] py-1.5 z-20 min-w-[150px] overflow-hidden backdrop-blur-sm"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        onClick={() => {
-                          onExportBook(book.id);
-                          setOpenMenuId(null);
-                        }}
-                        className="w-full px-3.5 py-2.5 text-sm text-left sidebar-text hover:bg-[var(--color-sidebar-hover)] flex items-center gap-3 transition-colors duration-150"
-                      >
-                        <svg className="w-4 h-4 text-sidebar-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Export PDF
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBook(book.id)}
-                        className="w-full px-3.5 py-2.5 text-sm text-left text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors duration-150"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Delete
-                      </button>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -280,6 +278,35 @@ export function Sidebar({
           </button>
         </div>
       </aside>
+      {openMenuId && menuPos && (
+        <div
+          ref={menuRef}
+          style={{ position: 'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
+          className="bg-[var(--color-sidebar-active)] rounded-xl shadow-2xl border border-[var(--color-sidebar-border)] py-1.5 min-w-[150px] overflow-hidden backdrop-blur-sm"
+        >
+          <button
+            onClick={() => {
+              onExportBook(openMenuId);
+              setOpenMenuId(null);
+            }}
+            className="w-full px-3.5 py-2.5 text-sm text-left sidebar-text hover:bg-[var(--color-sidebar-hover)] flex items-center gap-3 transition-colors duration-150"
+          >
+            <svg className="w-4 h-4 text-sidebar-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export PDF
+          </button>
+          <button
+            onClick={() => handleDeleteBook(openMenuId)}
+            className="w-full px-3.5 py-2.5 text-sm text-left text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors duration-150"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
+          </button>
+        </div>
+      )}
     </>
   );
 }

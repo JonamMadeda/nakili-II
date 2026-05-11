@@ -26,17 +26,25 @@ export function encrypt(text: string): string {
 }
 
 export function decrypt(encryptedText: string): string {
-  const combined = Buffer.from(encryptedText, 'base64');
-  
-  const iv = combined.subarray(0, IV_LENGTH);
-  const authTag = combined.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
-  const encrypted = combined.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
-  
-  const decipher = crypto.createDecipheriv(ALGORITHM, getEncryptionKey(), iv);
-  decipher.setAuthTag(authTag);
-  
-  let decrypted = decipher.update(encrypted, undefined, 'utf8');
-  decrypted += decipher.final('utf8');
-  
-  return decrypted;
+  try {
+    const combined = Buffer.from(encryptedText, 'base64');
+    
+    if (combined.length < IV_LENGTH + AUTH_TAG_LENGTH) {
+      return encryptedText;
+    }
+    
+    const iv = combined.subarray(0, IV_LENGTH);
+    const authTag = combined.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
+    const encrypted = combined.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
+    
+    const decipher = crypto.createDecipheriv(ALGORITHM, getEncryptionKey(), iv);
+    decipher.setAuthTag(authTag);
+    
+    let decrypted = decipher.update(encrypted, undefined, 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return decrypted;
+  } catch {
+    return encryptedText;
+  }
 }

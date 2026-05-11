@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllNotes, createNote } from '@/db';
+import { getAllBooks, createBook } from '@/db';
 
 function getUserId(request: NextRequest): string | null {
   return request.cookies.get('userId')?.value || null;
@@ -12,11 +12,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const notes = await getAllNotes(userId);
-    return NextResponse.json({ notes });
+    const books = await getAllBooks(userId);
+    return NextResponse.json({ books });
   } catch (error) {
-    console.error('Error fetching notes:', error);
-    return NextResponse.json({ error: 'Failed to fetch notes' }, { status: 500 });
+    console.error('Error fetching books:', error);
+    return NextResponse.json({ error: 'Failed to fetch books' }, { status: 500 });
   }
 }
 
@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const note = await createNote(userId);
-    return NextResponse.json({ note });
+    const book = await createBook(userId);
+    return NextResponse.json({ book });
   } catch (error) {
-    console.error('Error creating note:', error);
-    return NextResponse.json({ error: 'Failed to create note' }, { status: 500 });
+    console.error('Error creating book:', error);
+    return NextResponse.json({ error: 'Failed to create book' }, { status: 500 });
   }
 }

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from 'lucide-react';
+import { GlobalLoaderProvider } from '@/components/global-loader';
 import { Sidebar } from '@/components/sidebar';
-import { NoteEditor } from '@/components/note-editor';
+import { BookEditor } from '@/components/book-editor';
 
 export default function HomePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -39,6 +40,7 @@ export default function HomePage() {
   }
 
   return (
+    <GlobalLoaderProvider>
     <div className="h-screen bg-slate-50 flex overflow-hidden">
       <Sidebar
         isOpen={isSidebarOpen}
@@ -67,7 +69,7 @@ export default function HomePage() {
 
         <div className="flex-1 overflow-hidden">
           {selectedBookId ? (
-            <NoteEditor
+            <BookEditor
               bookId={selectedBookId}
               onBack={() => setSelectedBookId(null)}
             />
@@ -89,5 +91,6 @@ export default function HomePage() {
         </div>
       </main>
     </div>
+    </GlobalLoaderProvider>
   );
 }
