@@ -439,10 +439,11 @@ const handleExportSinglePagePDF = (page: Page) => {
           </span>
           <button
             onClick={handleAddPage}
-            className="p-2 text-primary hover:bg-primary/10 rounded-md transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-primary hover:bg-primary/10 rounded-md transition-colors"
             title="Add page"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">New Page</span>
           </button>
           <button
             onClick={handleExportPDF}
@@ -458,8 +459,8 @@ const handleExportSinglePagePDF = (page: Page) => {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-8">
-        <div className="max-w-3xl mx-auto pb-8 flex flex-col-reverse gap-6">
-          {[...filteredPages].reverse().map((page, reversedIndex) => (
+        <div className="max-w-3xl mx-auto pb-8 flex flex-col gap-6">
+          {[...filteredPages].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((page, index) => (
             <div
               key={page.id}
               className="bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col max-h-[650px]"
@@ -467,7 +468,7 @@ const handleExportSinglePagePDF = (page: Page) => {
               <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-slate-500">
-                    Page {filteredPages.length - reversedIndex}
+                    Page {index + 1}
                   </span>
                   <input
                     type="text"
