@@ -53,7 +53,7 @@ export default function HomePage() {
           }
         }}
         onExportBook={(id) => setSelectedBookId(id)}
-        onOpenSettings={() => router.push('/settings')}
+        onOpenSettings={() => router.push('/accounts')}
         onBookCreated={(bookId) => setSelectedBookId(bookId)}
       />
 

@@ -42,7 +42,7 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
   }, [openMenuPageId]);
 
   const MAX_WORDS_PER_PAGE = 3000;
-  const MAX_PAGES_PER_BOOK = 1000;
+  const MAX_PAGES_PER_BOOK = 100;
 
   const countWords = (html: string): number => {
     const tempDiv = document.createElement('div');
@@ -125,10 +125,14 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
 
   const handlePageContentChange = (pageId: string, newContent: string) => {
     const wordCount = countWords(newContent);
-    if (wordCount >= MAX_WORDS_PER_PAGE) {
-      setWordLimitWarning(`Page "${pages.find(p => p.id === pageId)?.title}" is approaching ${MAX_WORDS_PER_PAGE} word limit`);
-      setTimeout(() => setWordLimitWarning(null), 5000);
+    if (wordCount > MAX_WORDS_PER_PAGE) {
+      if (!wordLimitWarning) {
+        setWordLimitWarning(`Page "${pages.find(p => p.id === pageId)?.title}" has reached the ${MAX_WORDS_PER_PAGE} word limit`);
+        setTimeout(() => setWordLimitWarning(null), 5000);
+      }
+      return;
     }
+    setWordLimitWarning(null);
     setPages((prev) =>
       prev.map((page) =>
         page.id === pageId ? { ...page, content: newContent } : page
@@ -452,9 +456,9 @@ const handleExportSinglePagePDF = (page: Page) => {
           {[...filteredPages].reverse().map((page, reversedIndex) => (
             <div
               key={page.id}
-              className="bg-white rounded-lg shadow-sm border border-slate-200"
+              className="bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col max-h-[650px]"
             >
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+              <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-slate-500">
                     Page {filteredPages.length - reversedIndex}
@@ -505,7 +509,7 @@ const handleExportSinglePagePDF = (page: Page) => {
                 content={page.content}
                 onChange={(content) => handlePageContentChange(page.id, content)}
                 placeholder="Start writing..."
-                className="h-[500px]"
+                className="flex-1 min-h-0"
               />
             </div>
           ))}

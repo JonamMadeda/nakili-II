@@ -1,18 +1,19 @@
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function AuthPage() {
-  const [isSignUp, setIsSignUp] = React.useState(false);
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [message, setMessage] = React.useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,16 +70,19 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Nakili</h1>
-          <p className="text-slate-500 mt-2">Your multi-page note-taking app</p>
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-10">
+          <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mx-auto mb-5">
+            <BookOpen className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Nakili</h1>
+          <p className="text-sm text-slate-400 mt-1.5">Multi-page note-taking app</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
+        <div className="border border-slate-200 rounded-lg p-6">
+          <h2 className="text-base font-semibold text-slate-900 mb-6">
+            {isSignUp ? 'Create your account' : 'Sign in'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -94,7 +98,7 @@ export default function AuthPage() {
             <Input
               type="password"
               label="Password"
-              placeholder="Enter your password"
+              placeholder={isSignUp ? 'Create a password' : 'Enter your password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -112,23 +116,23 @@ export default function AuthPage() {
             )}
 
             {error && (
-              <div className="p-3 rounded-md bg-red-50 border border-red-200">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md border border-red-100">
+                {error}
               </div>
             )}
 
             {message && (
-              <div className="p-3 rounded-md bg-green-50 border border-green-200">
-                <p className="text-sm text-green-600">{message}</p>
+              <div className="text-sm text-emerald-600 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-100">
+                {message}
               </div>
             )}
 
             <Button type="submit" className="w-full" isLoading={isLoading}>
-              {isSignUp ? 'Sign Up' : 'Sign In'}
+              {isSignUp ? 'Create Account' : 'Sign In'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
             <button
               type="button"
               onClick={() => {
@@ -136,7 +140,7 @@ export default function AuthPage() {
                 setError('');
                 setMessage('');
               }}
-              className="text-sm text-primary hover:text-primary-hover font-medium"
+              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>

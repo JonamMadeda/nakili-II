@@ -144,7 +144,7 @@ export function Sidebar({
         <div className="p-5 border-b sidebar-divider">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 group cursor-pointer">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#5C5CFF] to-[#3D3DCC] flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               <h1 className="text-lg font-semibold sidebar-text tracking-tight">
@@ -160,7 +160,7 @@ export function Sidebar({
             </button>
           </div>
           <div className="relative group">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sidebar-text-muted group-focus-within:text-accent transition-colors duration-200" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sidebar-text-muted group-focus-within:text-sidebar-text transition-colors duration-200" />
             <input
               type="text"
               placeholder="Search books..."
@@ -206,7 +206,7 @@ export function Sidebar({
                   className={cn(
                     'group relative p-3 rounded-xl cursor-pointer transition-all duration-200 sidebar-item',
                     selectedBookId === book.id 
-                      ? 'sidebar-item-selected sidebar-glow' 
+                      ? 'sidebar-item-selected' 
                       : 'border border-transparent hover:border-[var(--color-sidebar-border)]'
                   )}
                 >
@@ -251,7 +251,7 @@ export function Sidebar({
                       </p>
                       <div className={cn(
                         'flex items-center gap-2 mt-2 text-xs transition-colors duration-200',
-                        selectedBookId === book.id ? 'text-sidebar-text' : 'sidebar-text-muted/60'
+                        selectedBookId === book.id ? 'text-sidebar-text' : 'sidebar-text-muted'
                       )}>
                         <span className="flex items-center gap-1.5">
                           <FileText className="w-3 h-3" />
@@ -274,7 +274,7 @@ export function Sidebar({
             className="w-full flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-hover)] transition-all duration-200 text-sm font-medium group"
           >
             <Settings className="w-4 h-4 transition-transform duration-200 group-hover:rotate-45" />
-            <span>Settings</span>
+            <span>Account</span>
           </button>
         </div>
       </aside>

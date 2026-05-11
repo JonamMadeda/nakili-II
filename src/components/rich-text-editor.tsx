@@ -46,8 +46,8 @@ export function RichTextEditor({
   }
 
   return (
-    <div className={cn('border border-slate-200 rounded-lg overflow-hidden flex flex-col h-full', className)}>
-      <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50 border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+    <div className={cn('flex flex-col min-h-0', className)}>
+      <div className="flex-shrink-0 flex flex-wrap items-center gap-1 p-2 bg-slate-50 border-b border-slate-200 shadow-sm">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
@@ -111,7 +111,7 @@ export function RichTextEditor({
           </svg>
         </ToolbarButton>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <EditorContent editor={editor} />
       </div>
       <style jsx global>{`

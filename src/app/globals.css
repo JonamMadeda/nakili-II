@@ -5,22 +5,21 @@
   --color-primary: #6B7280;
   --color-primary-hover: #4B5563;
   --color-secondary: #1F2937;
-  --color-sidebar: #00001A;
-  --color-sidebar-border: #0B0B2E;
-  --color-sidebar-text: #E8ECF4;
-  --color-sidebar-text-muted: #8892A8;
-  --color-sidebar-hover: #0A0A24;
-  --color-sidebar-active: #12123A;
-  --color-sidebar-selected: #1A1A4A;
-  --color-sidebar-selected-border: #2D2D6B;
-  --color-sidebar-selected-glow: rgba(74, 74, 200, 0.15);
-  --color-sidebar-icon: #A0A8C0;
-  --color-sidebar-input-bg: #0D0D28;
-  --color-sidebar-input-border: #1A1A40;
-  --color-sidebar-divider: #0F0F30;
-  --color-accent: #5C5CFF;
-  --color-accent-hover: #7070FF;
-  --color-accent-muted: rgba(92, 92, 255, 0.2);
+  --color-sidebar: #1F2937;
+  --color-sidebar-border: #4B5563;
+  --color-sidebar-text: #F3F4F6;
+  --color-sidebar-text-muted: #9CA3AF;
+  --color-sidebar-hover: #374151;
+  --color-sidebar-active: #4B5563;
+  --color-sidebar-selected: #4B5563;
+  --color-sidebar-selected-border: #6B7280;
+  --color-sidebar-icon: #9CA3AF;
+  --color-sidebar-input-bg: #111827;
+  --color-sidebar-input-border: #4B5563;
+  --color-sidebar-divider: #374151;
+  --color-accent: #6B7280;
+  --color-accent-hover: #4B5563;
+  --color-accent-muted: rgba(107, 114, 128, 0.2);
 }
 
 @keyframes fade-in {
@@ -119,7 +118,6 @@
 .sidebar-item-selected {
   background-color: var(--color-sidebar-selected);
   border: 1px solid var(--color-sidebar-selected-border);
-  box-shadow: 0 0 20px var(--color-sidebar-selected-glow), inset 0 0 12px rgba(74, 74, 200, 0.08);
 }
 
 /* Sidebar Icon */
@@ -143,7 +141,6 @@
 .sidebar-input:focus {
   background-color: var(--color-sidebar-active);
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-muted);
 }
 
 .sidebar-input::placeholder {
@@ -196,13 +193,8 @@
 }
 
 .sidebar-item-selected .book-icon {
-  background-color: var(--color-accent-muted);
-  color: var(--color-accent);
-}
-
-/* Subtle glow on selected items */
-.sidebar-glow {
-  box-shadow: 0 0 24px rgba(92, 92, 255, 0.12);
+  background-color: var(--color-sidebar-active);
+  color: var(--color-sidebar-text);
 }
 
 /* Scrollbar Styling */
