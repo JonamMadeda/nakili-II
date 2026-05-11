@@ -142,8 +142,7 @@ export function Sidebar({
         )}
       >
         <div className="p-5 border-b sidebar-divider">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
@@ -151,14 +150,6 @@ export function Sidebar({
                 Nakili
               </h1>
             </div>
-            <button
-              onClick={handleCreateBook}
-              className="p-2 text-sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-selected)] rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
-              title="Create new book"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          </div>
           <div className="relative group">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sidebar-text-muted group-focus-within:text-sidebar-text transition-colors duration-200" />
             <input
@@ -188,15 +179,31 @@ export function Sidebar({
               <p className="text-xs sidebar-text-muted text-center leading-relaxed">
                 {searchQuery ? 'Try a different search term' : 'Create your first book to get started'}
               </p>
+              {!searchQuery && (
+                <button
+                  onClick={handleCreateBook}
+                  className="mt-5 flex items-center gap-2 px-4 py-2 rounded-xl text-sm sidebar-text hover:bg-[var(--color-sidebar-hover)] transition-all duration-200"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>New Book</span>
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-1">
+              <button
+                onClick={handleCreateBook}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-hover)] transition-all duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New Book</span>
+              </button>
               <div className="px-2 py-2">
                 <p className="text-xs font-medium sidebar-text-muted uppercase tracking-wider">
                   {filteredBooks.length} {filteredBooks.length === 1 ? 'Book' : 'Books'}
                 </p>
               </div>
-              {filteredBooks.map((book) => (
+              {[...filteredBooks].sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()).map((book) => (
                 <div
                   key={book.id}
                   onClick={() => {
