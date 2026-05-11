@@ -31,6 +31,10 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
   const [wordLimitWarning, setWordLimitWarning] = useState<string | null>(null);
   const [pageLimitWarning, setPageLimitWarning] = useState<boolean>(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pagesRef = useRef(pages);
+  const bookRef = useRef(book);
+  pagesRef.current = pages;
+  bookRef.current = book;
   const { withLoading } = useLoading();
 
   useEffect(() => {
@@ -79,7 +83,9 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
   };
 
   const saveBook = useCallback(async () => {
-    if (!bookId) return;
+    const currentPages = pagesRef.current;
+    const currentBook = bookRef.current;
+    if (!bookId || !currentPages) return;
 
     setIsSaving(true);
     try {
@@ -87,8 +93,8 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: book?.title,
-          pages: pages.map((p) => ({
+          title: currentBook?.title,
+          pages: currentPages.map((p) => ({
             id: p.id,
             title: p.title,
             content: p.content,
@@ -100,7 +106,7 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [bookId, book?.title, pages]);
+  }, [bookId, withLoading]);
 
   const debouncedSave = useCallback(() => {
     if (saveTimeoutRef.current) {
