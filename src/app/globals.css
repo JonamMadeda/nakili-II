@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
+  --font-handwriting: "Caveat", cursive;
   --color-primary: #6B7280;
   --color-primary-hover: #4B5563;
   --color-secondary: #1F2937;

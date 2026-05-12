@@ -146,7 +146,7 @@ export function Sidebar({
               <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-lg font-semibold sidebar-text tracking-tight">
+              <h1 className="text-xl font-handwriting sidebar-text">
                 Nakili
               </h1>
             </div>
