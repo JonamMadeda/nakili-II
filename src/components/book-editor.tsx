@@ -26,7 +26,6 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [openMenuPageId, setOpenMenuPageId] = useState<string | null>(null);
   const [wordLimitWarning, setWordLimitWarning] = useState<string | null>(null);
   const [pageLimitWarning, setPageLimitWarning] = useState<boolean>(false);
@@ -71,7 +70,10 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
 
       if (response.ok) {
         setBook({ id: data.id, title: data.title });
-        setPages(data.pages || []);
+        const sorted = (data.pages || []).sort(
+          (a: Page, b: Page) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setPages(sorted);
       } else {
         setError(data.error || 'Failed to load book');
       }
@@ -87,7 +89,6 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
     const currentBook = bookRef.current;
     if (!bookId || !currentPages) return;
 
-    setIsSaving(true);
     try {
       await fetch(`/api/books/${bookId}`, {
         method: 'PUT',
@@ -103,8 +104,6 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
       });
     } catch (error) {
       console.error('Error saving book:', error);
-    } finally {
-      setIsSaving(false);
     }
   }, [bookId]);
 
@@ -424,7 +423,7 @@ const handleExportSinglePagePDF = (page: Page) => {
             className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-slate-400 truncate"
             placeholder="Book title"
           />
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <div className="relative hidden lg:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -436,11 +435,11 @@ const handleExportSinglePagePDF = (page: Page) => {
               />
             </div>
             <span className="text-sm text-slate-500 whitespace-nowrap hidden lg:block">
-              {pages.length}p
+              {pages.length} pages
             </span>
             <button
               onClick={handleAddPage}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-md transition-colors"
               title="Add page"
             >
               <Plus className="w-4 h-4" />
@@ -453,16 +452,13 @@ const handleExportSinglePagePDF = (page: Page) => {
             >
               <FileDown className="w-4 h-4" />
             </button>
-            {isSaving && (
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            )}
           </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-8">
         <div className="max-w-3xl mx-auto pb-8 flex flex-col gap-6">
-          {[...filteredPages].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((page, index) => (
+          {filteredPages.map((page, index) => (
             <div
               key={page.id}
               className="bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col max-h-[650px]"
