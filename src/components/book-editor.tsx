@@ -18,9 +18,10 @@ interface Page {
 interface BookEditorProps {
   bookId: string;
   onBack?: () => void;
+  onSave?: () => void;
 }
 
-export function BookEditor({ bookId, onBack }: BookEditorProps) {
+export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
   const [book, setBook] = useState<{ id: string; title: string } | null>(null);
   const [pages, setPages] = useState<Page[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,7 +91,7 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
     if (!bookId || !currentPages) return;
 
     try {
-      await fetch(`/api/books/${bookId}`, {
+      const res = await fetch(`/api/books/${bookId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -102,10 +103,11 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
           })),
         }),
       });
+      if (res.ok) onSave?.();
     } catch (error) {
       console.error('Error saving book:', error);
     }
-  }, [bookId]);
+  }, [bookId, onSave]);
 
   const debouncedSave = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -222,136 +224,246 @@ export function BookEditor({ bookId, onBack }: BookEditorProps) {
       doc.text(`Page ${index + 1} - ${new Date(page.date).toLocaleDateString()}`, 20, yOffset);
       yOffset += 8;
 
-doc.setFontSize(11);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0);
+
+      yOffset = renderHtmlContent(doc, page.content, 20, yOffset, pageWidth - 40);
+
+      yOffset += 10;
+    });
+
+    const filename = `${book.title.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+  };
+
+interface TextRun {
+  text: string;
+  bold: boolean;
+  italic: boolean;
+  strike: boolean;
+  underline: boolean;
+  lineBreak?: boolean;
+}
+
+function collectInlineRuns(node: Node, bold = false, italic = false, strike = false, underline = false): TextRun[] {
+  const runs: TextRun[] = [];
+
+  if (node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent || '';
+    if (text) {
+      runs.push({ text, bold, italic, strike, underline });
+    }
+    return runs;
+  }
+
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const el = node as HTMLElement;
+    const tag = el.tagName.toLowerCase();
+
+    if (tag === 'br') {
+      return [{ text: '', bold, italic, strike, underline, lineBreak: true }];
+    }
+    if (tag === 'strong' || tag === 'b' || tag === 'th') bold = true;
+    if (tag === 'em' || tag === 'i') italic = true;
+    if (tag === 's' || tag === 'strike' || tag === 'del') strike = true;
+    if (tag === 'u') underline = true;
+    if (el.style.fontWeight === 'bold' || el.style.fontWeight === '700') bold = true;
+    if (el.style.fontStyle === 'italic') italic = true;
+    if (el.style.textDecoration?.includes('underline')) underline = true;
+    if (el.style.textDecoration?.includes('line-through')) strike = true;
+
+    for (const child of el.childNodes) {
+      runs.push(...collectInlineRuns(child, bold, italic, strike, underline));
+    }
+  }
+
+  return runs;
+}
+
+interface WordRun {
+  text: string;
+  w: number;
+  bold: boolean;
+  italic: boolean;
+  strike: boolean;
+  underline: boolean;
+  lineBreak?: boolean;
+}
+
+function renderInlineRuns(
+  doc: jsPDF,
+  runs: TextRun[],
+  x: number,
+  startY: number,
+  maxWidth: number,
+  fontSize: number,
+  lineHeight: number,
+): number {
+  let y = startY;
+
+  function flushLine(lineWords: WordRun[]) {
+    if (lineWords.length === 0) return;
+    if (y > 265) { doc.addPage(); y = 20; }
+    let cx = x;
+    for (const lw of lineWords) {
+      const fs = lw.bold && lw.italic ? 'bolditalic' : lw.bold ? 'bold' : lw.italic ? 'italic' : 'normal';
+      doc.setFont('helvetica', fs);
+      doc.setFontSize(fontSize);
+      doc.text(lw.text, cx, y);
+      if (lw.underline) {
+        doc.setLineWidth(0.3);
+        doc.line(cx, y + 1, cx + lw.w, y + 1);
+      }
+      if (lw.strike) {
+        doc.setLineWidth(0.3);
+        doc.line(cx, y - fontSize * 0.3, cx + lw.w, y - fontSize * 0.3);
+      }
+      cx += lw.w;
+    }
+    y += lineHeight;
+  }
+
+  let lineWords: WordRun[] = [];
+  let lineWidth = 0;
+
+  for (const run of runs) {
+    if (run.lineBreak) {
+      flushLine(lineWords);
+      lineWords = [];
+      lineWidth = 0;
+      continue;
+    }
+
+    const words = run.text.match(/\S+\s*/g) || [];
+    for (const word of words) {
+      const fs = run.bold && run.italic ? 'bolditalic' : run.bold ? 'bold' : run.italic ? 'italic' : 'normal';
+      doc.setFont('helvetica', fs);
+      doc.setFontSize(fontSize);
+      const w = doc.getTextWidth(word);
+
+      if (lineWidth + w > maxWidth && lineWidth > 0) {
+        flushLine(lineWords);
+        lineWords = [];
+        lineWidth = 0;
+      }
+
+      lineWords.push({ text: word, w, bold: run.bold, italic: run.italic, strike: run.strike, underline: run.underline });
+      lineWidth += w;
+    }
+  }
+
+  flushLine(lineWords);
+
+  return y;
+}
+
+  const renderHtmlContent = (doc: jsPDF, html: string, x: number, startY: number, maxWidth: number): number => {
+    let y = startY;
+    const parser = new DOMParser();
+    const doc2 = parser.parseFromString(html, 'text/html');
+    const body = doc2.body;
+
+    function checkPage() {
+      if (y > 265) { doc.addPage(); y = 20; }
+    }
+
+    for (const child of Array.from(body.children)) {
+      const el = child as HTMLElement;
+      const tag = el.tagName.toLowerCase();
+
+      if (tag.startsWith('h')) {
+        const level = parseInt(tag[1]) || 1;
+        const fontSize = Math.max(22 - level * 4, 14);
+        checkPage();
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0);
+        y += 2;
+        y = renderInlineRuns(doc, collectInlineRuns(el), x, y, maxWidth, fontSize, fontSize * 0.35 + 6);
+        y += 6;
+      } else if (tag === 'ul' || tag === 'ol') {
+        const isOrdered = tag === 'ol';
+        let idx = 0;
+        for (const li of Array.from(el.children)) {
+          if (li.tagName.toLowerCase() !== 'li') continue;
+          idx++;
+          checkPage();
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0);
+          const runs = collectInlineRuns(li);
+          const prefix = isOrdered ? `${idx}. ` : '• ';
+          y = renderInlineRuns(doc, [{ text: prefix, bold: false, italic: false, strike: false, underline: false }, ...runs], x, y, maxWidth - 10, 11, 5.5);
+          y += 1;
+        }
+        y += 4;
+      } else if (tag === 'blockquote') {
+        checkPage();
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(100);
+        y += 1;
+        y = renderInlineRuns(doc, collectInlineRuns(el), x + 10, y, maxWidth - 20, 11, 5.5);
+        doc.setTextColor(0);
+        y += 5;
+      } else if (tag === 'pre') {
+        checkPage();
+        doc.setFontSize(9);
+        doc.setFont('courier', 'normal');
+        doc.setTextColor(0);
+        const text = el.textContent?.trim();
+        if (text) {
+          const split = doc.splitTextToSize(text, maxWidth - 10);
+          split.forEach((line: string) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.text(line, x + 5, y);
+            y += 4.5;
+          });
+        }
+        y += 4;
+      } else {
+        if (!el.textContent?.trim()) continue;
+        checkPage();
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0);
+        y = renderInlineRuns(doc, collectInlineRuns(el), x, y, maxWidth, 11, 5.5);
+        y += 6;
+      }
+    }
+
+    return y;
+  };
+
+  const handleExportSinglePagePDF = (page: Page) => {
+    if (!book) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yOffset = 20;
+
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text(page.title, 20, yOffset);
+    yOffset += 10;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(128);
+    doc.text(`${new Date(page.date).toLocaleDateString()}`, 20, yOffset);
+    yOffset += 10;
+
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0);
 
     yOffset = renderHtmlContent(doc, page.content, 20, yOffset, pageWidth - 40);
 
-    yOffset += 10;
-  });
-
-  const filename = `${book.title.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
-  doc.save(filename);
-};
-
-const renderHtmlContent = (doc: jsPDF, html: string, x: number, startY: number, maxWidth: number): number => {
-  let yOffset = startY;
-  const parser = new DOMParser();
-  const doc2 = parser.parseFromString(html, 'text/html');
-  const elements = doc2.body.querySelectorAll('p, ul, ol, li, h1, h2, h3, h4, h5, h6, blockquote, pre, div');
-
-  elements.forEach((el) => {
-    const tag = el.tagName.toLowerCase();
-    const text = el.textContent?.trim() || '';
-
-    if (!text) return;
-
-    if (yOffset > 270) {
-      doc.addPage();
-      yOffset = 20;
-    }
-
-    if (tag.startsWith('h')) {
-      const level = parseInt(tag[1]) || 1;
-      const fontSize = Math.max(24 - level * 4, 14);
-      doc.setFontSize(fontSize);
-      doc.setFont('helvetica', 'bold');
-      yOffset += 4;
-    } else if (tag === 'li') {
-      const parent = el.parentElement;
-      if (parent?.tagName.toLowerCase() === 'ol') {
-        const index = Array.from(parent.children).indexOf(el) + 1;
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        const lines = doc.splitTextToSize(`${index}. ${text}`, maxWidth - 10);
-        lines.forEach((line: string) => {
-          if (yOffset > 280) { doc.addPage(); yOffset = 20; }
-          doc.text(line, x + 10, yOffset);
-          yOffset += 6;
-        });
-        return;
-      } else {
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        const lines = doc.splitTextToSize(`• ${text}`, maxWidth - 10);
-        lines.forEach((line: string) => {
-          if (yOffset > 280) { doc.addPage(); yOffset = 20; }
-          doc.text(line, x + 10, yOffset);
-          yOffset += 6;
-        });
-        return;
-      }
-    } else if (tag === 'blockquote') {
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(100);
-      const lines = doc.splitTextToSize(text, maxWidth - 20);
-      lines.forEach((line: string) => {
-        if (yOffset > 280) { doc.addPage(); yOffset = 20; }
-        doc.text(line, x + 10, yOffset);
-        yOffset += 6;
-      });
-      doc.setTextColor(0);
-      return;
-    } else if (tag === 'pre') {
-      doc.setFontSize(10);
-      doc.setFont('courier', 'normal');
-      const lines = doc.splitTextToSize(text, maxWidth - 10);
-      lines.forEach((line: string) => {
-        if (yOffset > 280) { doc.addPage(); yOffset = 20; }
-        doc.text(line, x + 5, yOffset);
-        yOffset += 5;
-      });
-      return;
-    } else {
-      const htmlEl = el as HTMLElement;
-      const isBold = el.querySelector('strong, b') || htmlEl.style.fontWeight === 'bold' || tag === 'b';
-      const isItalic = el.querySelector('em, i') || htmlEl.style.fontStyle === 'italic' || tag === 'i';
-      doc.setFontSize(11);
-      doc.setFont('helvetica', isBold && isItalic ? 'bold' : isBold ? 'bold' : isItalic ? 'italic' : 'normal');
-
-      const lines = doc.splitTextToSize(text, maxWidth);
-      lines.forEach((line: string) => {
-        if (yOffset > 280) { doc.addPage(); yOffset = 20; }
-        doc.text(line, x, yOffset);
-        yOffset += 6;
-      });
-    }
-    yOffset += 4;
-  });
-
-  return yOffset;
-};
-
-const handleExportSinglePagePDF = (page: Page) => {
-  if (!book) return;
-
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let yOffset = 20;
-
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text(page.title, 20, yOffset);
-  yOffset += 10;
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(128);
-  doc.text(`${new Date(page.date).toLocaleDateString()}`, 20, yOffset);
-  yOffset += 10;
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0);
-
-  yOffset = renderHtmlContent(doc, page.content, 20, yOffset, pageWidth - 40);
-
-  const filename = `${book.title.replace(/[^a-zA-Z0-9]/g, '-')}-${page.title.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
-  doc.save(filename);
-  setOpenMenuPageId(null);
-};
+    const filename = `${book.title.replace(/[^a-zA-Z0-9]/g, '-')}-${page.title.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
+    doc.save(filename);
+    setOpenMenuPageId(null);
+  };
 
   const filteredPages = pages.filter(
     (page) =>

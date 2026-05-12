@@ -23,6 +23,7 @@ interface SidebarProps {
   onExportBook: (id: string) => void;
   onOpenSettings: () => void;
   onBookCreated: (bookId: string) => void;
+  refreshKey?: number;
 }
 
 export function Sidebar({
@@ -34,6 +35,7 @@ export function Sidebar({
   onExportBook,
   onOpenSettings,
   onBookCreated,
+  refreshKey,
 }: SidebarProps) {
   const [books, setBooks] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,7 +73,7 @@ export function Sidebar({
 
   useEffect(() => {
     fetchBooks();
-  }, [fetchBooks]);
+  }, [fetchBooks, refreshKey]);
 
   const handleCreateBook = async () => {
     try {
@@ -193,13 +195,15 @@ export function Sidebar({
             <div className="space-y-1">
               <button
                 onClick={handleCreateBook}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-hover)] transition-all duration-200"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-hover)] transition-all duration-200 active:scale-[0.98]"
               >
-                <Plus className="w-4 h-4" />
+                <span className="w-7 h-7 rounded-lg bg-[var(--color-sidebar-hover)] flex items-center justify-center">
+                  <Plus className="w-4 h-4" />
+                </span>
                 <span>New Book</span>
               </button>
-              <div className="px-2 py-2">
-                <p className="text-xs font-medium sidebar-text-muted uppercase tracking-wider">
+              <div className="px-4 pt-4 pb-1">
+                <p className="text-[11px] font-semibold sidebar-text-muted uppercase tracking-widest">
                   {filteredBooks.length} {filteredBooks.length === 1 ? 'Book' : 'Books'}
                 </p>
               </div>
@@ -211,25 +215,25 @@ export function Sidebar({
                     onClose();
                   }}
                   className={cn(
-                    'group relative p-3 rounded-xl cursor-pointer transition-all duration-200 sidebar-item',
+                    'group relative mx-2 px-3 py-3.5 rounded-xl cursor-pointer transition-all duration-200',
                     selectedBookId === book.id 
                       ? 'sidebar-item-selected' 
-                      : 'border border-transparent hover:border-[var(--color-sidebar-border)]'
+                      : 'hover:bg-[var(--color-sidebar-hover)]'
                   )}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3.5">
                     <div className={cn(
-                      'w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200',
+                      'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200',
                       selectedBookId === book.id 
-                        ? 'book-icon' 
+                        ? 'bg-accent text-white shadow-lg shadow-accent/20' 
                         : 'book-icon'
                     )}>
-                      <BookOpen className="w-4 h-4" />
+                      <BookOpen className="w-4.5 h-4.5" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-start justify-between gap-2">
                         <h3 className={cn(
-                          'font-medium truncate text-sm transition-colors duration-200',
+                          'font-semibold text-sm leading-snug truncate transition-colors duration-200',
                           selectedBookId === book.id ? 'text-white' : 'sidebar-text'
                         )}>
                           {book.title}
@@ -245,27 +249,33 @@ export function Sidebar({
                               setOpenMenuId(book.id);
                             }
                           }}
-                          className="p-1.5 rounded-lg sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-hover)] opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90"
+                          className="p-1 rounded-lg sidebar-text-muted hover:text-white hover:bg-[var(--color-sidebar-active)] opacity-0 group-hover:opacity-100 transition-all duration-200 active:scale-90 -mr-1 -mt-1"
                         >
-                          <MoreVertical className="w-4 h-4" />
+                          <MoreVertical className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <p className={cn(
-                        'text-xs line-clamp-1 mt-0.5 transition-colors duration-200',
-                        selectedBookId === book.id ? 'text-sidebar-text' : 'sidebar-text-muted'
+                        'text-xs leading-relaxed line-clamp-1 mt-1 transition-colors duration-200',
+                        selectedBookId === book.id ? 'text-gray-300' : 'sidebar-text-muted'
                       )}>
-                        {stripHtml(book.preview) || 'Empty book'}
+                        {stripHtml(book.preview) || 'No content yet'}
                       </p>
-                      <div className={cn(
-                        'flex items-center gap-2 mt-2 text-xs transition-colors duration-200',
-                        selectedBookId === book.id ? 'text-sidebar-text' : 'sidebar-text-muted'
-                      )}>
-                        <span className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-3 mt-2.5">
+                        <span className={cn(
+                          'inline-flex items-center gap-1 text-[11px] leading-none font-medium px-2 py-1 rounded-full transition-colors duration-200',
+                          selectedBookId === book.id 
+                            ? 'bg-white/10 text-gray-300' 
+                            : 'bg-gray-700/40 text-gray-400'
+                        )}>
                           <FileText className="w-3 h-3" />
-                          {book.pageCount}
+                          {book.pageCount} {book.pageCount === 1 ? 'page' : 'pages'}
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-current opacity-40" />
-                        <span>{formatDate(book.lastModified)}</span>
+                        <span className={cn(
+                          'text-[11px] font-medium transition-colors duration-200',
+                          selectedBookId === book.id ? 'text-gray-400' : 'text-gray-500'
+                        )}>
+                          {formatDate(book.lastModified)}
+                        </span>
                       </div>
                     </div>
                   </div>

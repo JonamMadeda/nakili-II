@@ -11,6 +11,7 @@ export default function HomePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function HomePage() {
         onExportBook={(id) => setSelectedBookId(id)}
         onOpenSettings={() => router.push('/accounts')}
         onBookCreated={(bookId) => setSelectedBookId(bookId)}
+        refreshKey={sidebarRefreshKey}
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -72,6 +74,7 @@ export default function HomePage() {
             <BookEditor
               bookId={selectedBookId}
               onBack={() => setSelectedBookId(null)}
+              onSave={() => setSidebarRefreshKey(k => k + 1)}
             />
           ) : (
             <div className="h-full flex items-center justify-center">

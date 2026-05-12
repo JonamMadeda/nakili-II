@@ -44,20 +44,26 @@ export async function getAllBooks(userId: string) {
     return [];
   }
 
-  const allPages: { id: string; book_id: string; created_at: Date }[] = [];
+  const allPages: { id: string; book_id: string; content: string; created_at: Date }[] = [];
   for (const book of userBooks) {
     const pages = await sql`
-      SELECT id, book_id, created_at FROM pages 
+      SELECT id, book_id, content, created_at FROM pages 
       WHERE book_id = ${book.id}
       ORDER BY created_at ASC
-    ` as { id: string; book_id: string; created_at: Date }[];
+    ` as { id: string; book_id: string; content: string; created_at: Date }[];
     allPages.push(...pages);
   }
 
   const pageCountMap = new Map<string, number>();
+  const previewMap = new Map<string, string>();
   for (const page of allPages) {
     const count = pageCountMap.get(page.book_id) || 0;
     pageCountMap.set(page.book_id, count + 1);
+    if (!previewMap.has(page.book_id) && page.content) {
+      const decrypted = decrypt(page.content);
+      const stripped = decrypted.replace(/<[^>]*>/g, '').trim();
+      previewMap.set(page.book_id, stripped.slice(0, 120));
+    }
   }
 
   return userBooks.map(book => ({
@@ -66,7 +72,7 @@ export async function getAllBooks(userId: string) {
     lastModified: book.last_modified,
     createdAt: book.created_at,
     pageCount: pageCountMap.get(book.id) || 0,
-    preview: '',
+    preview: previewMap.get(book.id) || '',
   }));
 }
 
