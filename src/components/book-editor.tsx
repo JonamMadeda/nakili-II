@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Trash2, Search, FileDown, MoreVertical } from 'lucide-react';
+import { Plus, Trash2, Search, FileDown, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { cn } from '@/lib/utils';
 import { jsPDF } from 'jspdf';
@@ -30,6 +30,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
   const [openMenuPageId, setOpenMenuPageId] = useState<string | null>(null);
   const [wordLimitWarning, setWordLimitWarning] = useState<string | null>(null);
   const [pageLimitWarning, setPageLimitWarning] = useState<boolean>(false);
+  const [activePageIndex, setActivePageIndex] = useState(0);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pagesRef = useRef(pages);
   const bookRef = useRef(book);
@@ -482,6 +483,17 @@ function renderInlineRuns(
     });
   };
 
+  const safeActiveIndex = Math.min(activePageIndex, Math.max(0, filteredPages.length - 1));
+  const activePage = filteredPages[safeActiveIndex];
+
+  const goToPrevPage = () => {
+    if (safeActiveIndex > 0) setActivePageIndex(safeActiveIndex - 1);
+  };
+
+  const goToNextPage = () => {
+    if (safeActiveIndex < filteredPages.length - 1) setActivePageIndex(safeActiveIndex + 1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -508,128 +520,160 @@ function renderInlineRuns(
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-shrink-0 z-10 bg-slate-50 border-b border-slate-200 px-6 py-4">
+      <div className="flex-shrink-0 z-10 bg-slate-50 border-b border-slate-200">
         {(wordLimitWarning || pageLimitWarning) && (
-          <div className="max-w-3xl mx-auto mb-2">
-            <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-md text-sm">
-              {pageLimitWarning && `Book has reached maximum of ${MAX_PAGES_PER_BOOK} pages. `}
-              {wordLimitWarning}
+          <div className="px-6 pt-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-md text-sm">
+                {pageLimitWarning && `Book has reached maximum of ${MAX_PAGES_PER_BOOK} pages. `}
+                {wordLimitWarning}
+              </div>
             </div>
           </div>
         )}
-        <div className="max-w-3xl mx-auto flex items-center gap-2">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="p-2 -ml-2 text-slate-500 hover:text-slate-700 lg:hidden flex-shrink-0"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-          <input
-            type="text"
-            value={book.title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-slate-400 truncate"
-            placeholder="Book title"
-          />
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="relative hidden lg:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search pages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-3 py-1.5 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:border-primary w-36"
-              />
+
+        <div className="px-6 py-3 border-b border-slate-200">
+          <div className="max-w-3xl mx-auto flex items-center gap-2">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-2 -ml-2 text-slate-500 hover:text-slate-700 lg:hidden flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+            <input
+              type="text"
+              value={book.title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-slate-400 truncate"
+              placeholder="Book title"
+            />
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="relative hidden lg:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search pages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-3 py-1.5 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:border-primary w-36"
+                />
+              </div>
+              <span className="text-sm text-slate-500 whitespace-nowrap hidden lg:block">
+                {filteredPages.length} / {pages.length} pages
+              </span>
+              <button
+                onClick={handleAddPage}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-md transition-colors"
+                title="Add page"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden lg:inline">New Page</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                title="Export PDF"
+              >
+                <FileDown className="w-4 h-4" />
+              </button>
             </div>
-            <span className="text-sm text-slate-500 whitespace-nowrap hidden lg:block">
-              {pages.length} pages
-            </span>
-            <button
-              onClick={handleAddPage}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-md transition-colors"
-              title="Add page"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden lg:inline">New Page</span>
-            </button>
-            <button
-              onClick={handleExportPDF}
-              className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
-              title="Export PDF"
-            >
-              <FileDown className="w-4 h-4" />
-            </button>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-8">
-        <div className="max-w-3xl mx-auto pb-8 flex flex-col gap-6">
-          {filteredPages.map((page, index) => (
-            <div
-              key={page.id}
-              className="bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col max-h-[650px]"
-            >
-              <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-slate-500">
-                    Page {index + 1}
-                  </span>
-                  <input
-                    type="text"
-                    value={page.title}
-                    onChange={(e) => handlePageTitleChange(page.id, e.target.value)}
-                    className="text-sm font-semibold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0"
-                    placeholder="Page title"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">
-                    {formatDate(page.date)}
-                  </span>
-                  <div className="relative">
+        {filteredPages.length > 0 && activePage && (
+          <div className="px-6 py-2">
+            <div className="max-w-3xl mx-auto flex items-center gap-2">
+              <button
+                onClick={goToPrevPage}
+                disabled={safeActiveIndex === 0}
+                className="p-1 text-slate-500 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                title="Previous page"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm text-slate-500 whitespace-nowrap flex-shrink-0 tabular-nums">
+                {safeActiveIndex + 1} / {filteredPages.length}
+              </span>
+              <button
+                onClick={goToNextPage}
+                disabled={safeActiveIndex === filteredPages.length - 1}
+                className="p-1 text-slate-500 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                title="Next page"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              <div className="w-px h-5 bg-slate-300 mx-1 flex-shrink-0" />
+              <input
+                type="text"
+                value={activePage.title}
+                onChange={(e) => handlePageTitleChange(activePage.id, e.target.value)}
+                className="flex-1 min-w-0 text-sm font-semibold text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-slate-400 truncate"
+                placeholder="Page title"
+              />
+              <span className="text-xs text-slate-400 flex-shrink-0 hidden sm:inline">
+                {formatDate(activePage.date)}
+              </span>
+              <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => setOpenMenuPageId(openMenuPageId === activePage.id ? null : activePage.id)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {openMenuPageId === activePage.id && (
+                  <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50 min-w-[140px]">
                     <button
-                      onClick={() => setOpenMenuPageId(openMenuPageId === page.id ? null : page.id)}
-                      className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                      onClick={() => { setOpenMenuPageId(null); handleExportSinglePagePDF(activePage); }}
+                      className="w-full px-3 py-2 text-sm text-left text-slate-700 hover:bg-slate-100 flex items-center gap-2"
                     >
-                      <MoreVertical className="w-4 h-4" />
+                      <FileDown className="w-3.5 h-3.5" />
+                      Export PDF
                     </button>
-                    {openMenuPageId === page.id && (
-                      <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50 min-w-[140px]">
-                        <button
-                          onClick={() => { setOpenMenuPageId(null); handleExportSinglePagePDF(page); }}
-                          className="w-full px-3 py-2 text-sm text-left text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-                        >
-                          <FileDown className="w-3.5 h-3.5" />
-                          Export PDF
-                        </button>
-                        {pages.length > 1 && (
-                          <button
-                            onClick={() => { setOpenMenuPageId(null); handleDeletePage(page.id); }}
-                            className="w-full px-3 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Delete page
-                          </button>
-                        )}
-                      </div>
+                    {pages.length > 1 && (
+                      <button
+                        onClick={() => { setOpenMenuPageId(null); handleDeletePage(activePage.id); }}
+                        className="w-full px-3 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete page
+                      </button>
                     )}
                   </div>
-                </div>
+                )}
               </div>
-              <RichTextEditor
-                content={page.content}
-                onChange={(content) => handlePageContentChange(page.id, content)}
-                placeholder="Start writing..."
-                className="flex-1 min-h-0"
-              />
             </div>
-          ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full px-6 py-6">
+          <div className="max-w-3xl mx-auto h-full">
+            {filteredPages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                <p className="text-lg font-medium">No pages yet</p>
+                <p className="text-sm mt-1">Create a new page to get started</p>
+              </div>
+            ) : activePage ? (
+              <div className="h-full bg-white rounded-lg shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+                <RichTextEditor
+                  key={activePage.id}
+                  content={activePage.content}
+                  onChange={(content) => handlePageContentChange(activePage.id, content)}
+                  placeholder="Start writing..."
+                  className="flex-1 min-h-0"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-400">
+                Page not found
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ interface SidebarProps {
   onOpenSettings: () => void;
   onBookCreated: (bookId: string) => void;
   refreshKey?: number;
+  standalone?: boolean;
 }
 
 export function Sidebar({
@@ -36,6 +37,7 @@ export function Sidebar({
   onOpenSettings,
   onBookCreated,
   refreshKey,
+  standalone = false,
 }: SidebarProps) {
   const [books, setBooks] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,7 +133,7 @@ export function Sidebar({
 
   return (
     <>
-      {isOpen && (
+      {isOpen && !standalone && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden"
           onClick={onClose}
@@ -139,8 +141,9 @@ export function Sidebar({
       )}
       <aside
         className={cn(
-          'fixed lg:relative inset-y-0 left-0 z-30 w-80 h-screen sidebar flex flex-col transition-transform duration-300 ease-out shadow-2xl shadow-black/30',
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          standalone ? 'relative w-full h-full' : 'fixed lg:relative inset-y-0 left-0 z-30 w-80 h-screen',
+          'sidebar flex flex-col transition-transform duration-300 ease-out shadow-2xl shadow-black/30',
+          standalone ? 'translate-x-0' : (isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')
         )}
       >
         <div className="p-5 border-b sidebar-divider">

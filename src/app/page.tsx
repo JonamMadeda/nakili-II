@@ -60,24 +60,45 @@ export default function HomePage() {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="lg:hidden sticky top-0 z-10 bg-slate-50 border-b border-slate-200 px-4 py-3">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 -ml-2 text-slate-600 hover:text-slate-900"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          {selectedBookId ? (
-            <BookEditor
-              bookId={selectedBookId}
-              onBack={() => setSelectedBookId(null)}
-              onSave={() => setSidebarRefreshKey(k => k + 1)}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center">
+        {selectedBookId ? (
+          <>
+            <div className="lg:hidden sticky top-0 z-10 bg-slate-50 border-b border-slate-200 px-4 py-3">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 -ml-2 text-slate-600 hover:text-slate-900"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <BookEditor
+                bookId={selectedBookId}
+                onBack={() => setSelectedBookId(null)}
+                onSave={() => setSidebarRefreshKey(k => k + 1)}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 overflow-hidden lg:hidden">
+              <Sidebar
+                isOpen={true}
+                onClose={() => {}}
+                selectedBookId={selectedBookId}
+                onSelectBook={(id) => setSelectedBookId(id)}
+                onDeleteBook={(id) => {
+                  if (selectedBookId === id) {
+                    setSelectedBookId(null);
+                  }
+                }}
+                onExportBook={(id) => setSelectedBookId(id)}
+                onOpenSettings={() => router.push('/accounts')}
+                onBookCreated={(bookId) => setSelectedBookId(bookId)}
+                refreshKey={sidebarRefreshKey}
+                standalone
+              />
+            </div>
+            <div className="flex-1 overflow-hidden hidden lg:flex items-center justify-center">
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
                   <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,8 +111,8 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </main>
     </div>
     </GlobalLoaderProvider>
