@@ -3,24 +3,24 @@
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
   --font-handwriting: "Caveat", cursive;
-  --color-primary: #6B7280;
-  --color-primary-hover: #4B5563;
+  --color-primary: #000047;
+  --color-primary-hover: #1a1a6e;
   --color-secondary: #1F2937;
-  --color-sidebar: #1F2937;
-  --color-sidebar-border: #4B5563;
-  --color-sidebar-text: #F3F4F6;
-  --color-sidebar-text-muted: #9CA3AF;
-  --color-sidebar-hover: #374151;
-  --color-sidebar-active: #4B5563;
-  --color-sidebar-selected: #4B5563;
-  --color-sidebar-selected-border: #6B7280;
-  --color-sidebar-icon: #9CA3AF;
-  --color-sidebar-input-bg: #111827;
-  --color-sidebar-input-border: #4B5563;
-  --color-sidebar-divider: #374151;
-  --color-accent: #6B7280;
-  --color-accent-hover: #4B5563;
-  --color-accent-muted: rgba(107, 114, 128, 0.2);
+  /* Brand scale built around #000047. Light tints for tinted surfaces on
+     light backgrounds, bright mid-tones for accents on dark surfaces. */
+  --color-brand-50: #EDEDFB;
+  --color-brand-100: #D9D9F5;
+  --color-brand-200: #B9B9EC;
+  --color-brand-300: #9B9BE4;
+  --color-brand-400: #7C7CF4;
+  --color-brand-500: #4A4AD1;
+  --color-brand-600: #1a1a6e;
+  --color-brand-700: #000047;
+  --color-brand-800: #000033;
+  --color-brand-bright: #8B8BF5;
+  --color-accent: #000047;
+  --color-accent-hover: #1a1a6e;
+  --color-accent-muted: rgba(0, 0, 71, 0.2);
 }
 
 @keyframes fade-in {
@@ -80,90 +80,6 @@
   border-color: var(--color-primary);
 }
 
-/* Sidebar Theme Classes */
-.sidebar {
-  background-color: var(--color-sidebar);
-  border-color: var(--color-sidebar-border);
-}
-
-.sidebar-text {
-  color: var(--color-sidebar-text);
-}
-
-.sidebar-text-muted {
-  color: var(--color-sidebar-text-muted);
-}
-
-.sidebar-hover:hover {
-  background-color: var(--color-sidebar-hover);
-}
-
-.sidebar-active {
-  background-color: var(--color-sidebar-active);
-}
-
-/* Sidebar Item States */
-.sidebar-item {
-  background-color: transparent;
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-item:hover {
-  background-color: var(--color-sidebar-hover);
-}
-
-.sidebar-item:active {
-  transform: scale(0.99);
-}
-
-.sidebar-item-selected {
-  background-color: var(--color-sidebar-selected);
-  border: 1px solid var(--color-sidebar-selected-border);
-}
-
-/* Sidebar Icon */
-.sidebar-icon {
-  color: var(--color-sidebar-icon);
-  transition: color 200ms ease;
-}
-
-.sidebar-item:hover .sidebar-icon,
-.sidebar-item-selected .sidebar-icon {
-  color: var(--color-sidebar-text);
-}
-
-/* Sidebar Input */
-.sidebar-input {
-  background-color: var(--color-sidebar-input-bg);
-  border: 1px solid var(--color-sidebar-input-border);
-  transition: all 200ms ease;
-}
-
-.sidebar-input:focus {
-  background-color: var(--color-sidebar-active);
-  border-color: var(--color-accent);
-}
-
-.sidebar-input::placeholder {
-  color: var(--color-sidebar-text-muted);
-  opacity: 0.7;
-}
-
-/* Sidebar Divider */
-.sidebar-divider {
-  background-color: var(--color-sidebar-divider);
-}
-
-/* Settings Button */
-.sidebar-settings {
-  border-top: 1px solid var(--color-sidebar-divider);
-  transition: all 200ms ease;
-}
-
-.sidebar-settings:hover {
-  background-color: var(--color-sidebar-hover);
-}
-
 /* Accent Classes */
 .bg-accent {
   background-color: var(--color-accent);
@@ -181,43 +97,9 @@
   background-color: var(--color-accent-hover);
 }
 
-/* Book Icon States */
-.book-icon {
-  background-color: var(--color-sidebar-hover);
-  color: var(--color-sidebar-text-muted);
-  transition: all 200ms ease;
-}
-
-.sidebar-item:hover .book-icon {
-  background-color: var(--color-sidebar-active);
-  color: var(--color-sidebar-icon);
-}
-
-.sidebar-item-selected .book-icon {
-  background-color: var(--color-sidebar-active);
-  color: var(--color-sidebar-text);
-}
-
-/* Scrollbar Styling */
-.sidebar-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  background-color: var(--color-sidebar-border);
-  border-radius: 3px;
-}
-
-.sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-sidebar-hover);
-}
-
-/* Focus Visible States */
-.focus-visible-navy:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-sidebar), 0 0 0 4px var(--color-accent);
+/* Global keyboard-focus baseline: one visible brand ring everywhere.
+   :where() keeps specificity at zero so component-level focus styles win. */
+:where(a, button, input, select, textarea, [role="option"], [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
 }

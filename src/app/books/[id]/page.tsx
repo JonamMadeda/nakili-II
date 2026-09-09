@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { GlobalLoaderProvider } from '@/components/global-loader';
-import { BookLibrary } from '@/components/book-library';
+import { BookEditor } from '@/components/book-editor';
 
-export default function HomePage() {
+export default function BookPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
+  const params = useParams();
+  const bookId = params.id as string;
 
   useEffect(() => {
     checkAuth();
@@ -37,8 +39,8 @@ export default function HomePage() {
 
   return (
     <GlobalLoaderProvider>
-      <div className="h-screen overflow-y-auto">
-        <BookLibrary />
+      <div className="h-screen bg-slate-50 overflow-hidden">
+        <BookEditor bookId={bookId} onBack={() => router.push('/')} />
       </div>
     </GlobalLoaderProvider>
   );

@@ -129,7 +129,7 @@ export default function AccountsPage() {
       <div className="max-w-lg mx-auto px-4 py-12">
         <button
           onClick={() => router.push('/')}
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 mb-8 transition-colors"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-600 mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to app</span>
@@ -147,7 +147,7 @@ export default function AccountsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-900">{user?.email}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Member since {user?.createdAt ? formatDate(user.createdAt) : '...'}
                   </p>
                 </div>
@@ -269,7 +269,7 @@ export default function AccountsPage() {
             placeholder={user?.email}
             value={deleteConfirmation}
             onChange={(e) => setDeleteConfirmation(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400"
+            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
           />
         </div>
       </Modal>

@@ -73,11 +73,11 @@ export default function AuthPage() {
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center mx-auto mb-5">
+          <div className="w-12 h-12 rounded-xl bg-brand-700 flex items-center justify-center mx-auto mb-5">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-handwriting text-slate-900">Nakili</h1>
-          <p className="text-sm text-slate-400 mt-1.5">Multi-page note-taking app</p>
+          <p className="text-sm text-slate-500 mt-1.5">Multi-page note-taking app</p>
         </div>
 
         <div className="border border-slate-200 rounded-lg p-6">
@@ -140,7 +140,7 @@ export default function AuthPage() {
                 setError('');
                 setMessage('');
               }}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-600 transition-colors"
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
