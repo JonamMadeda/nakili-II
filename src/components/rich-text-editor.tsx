@@ -19,6 +19,7 @@ interface RichTextEditorProps {
   /** Identity of the document in the editor. When it changes, the same
       editor instance loads the new content instead of remounting. */
   pageId?: string;
+  editable?: boolean;
 }
 
 export function RichTextEditor({
@@ -29,6 +30,7 @@ export function RichTextEditor({
   showToolbar = true,
   onEditorReady,
   pageId,
+  editable = true,
 }: RichTextEditorProps) {
   const editorRef = useRef<Editor | null>(null);
   const switchingRef = useRef(false);
@@ -77,13 +79,14 @@ export function RichTextEditor({
       }),
     ],
     content,
+    editable,
     onUpdate: ({ editor }) => {
       if (switchingRef.current) return;
       onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-slate max-w-none focus:outline-none min-h-[280px] px-4 py-3',
+        class: 'prose prose-slate max-w-none font-serif text-[17px] leading-8 focus:outline-none min-h-[50vh] px-4 py-3',
       },
     },
   });
@@ -95,6 +98,10 @@ export function RichTextEditor({
       onEditorReady(editor);
     }
   }, [editor, onEditorReady]);
+
+  useEffect(() => {
+    if (editor) editor.setEditable(editable);
+  }, [editor, editable]);
 
   useEffect(() => {
     if (!editor || pageId === undefined) return;
@@ -256,7 +263,7 @@ export function RichTextEditor({
         .ProseMirror h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
         .ProseMirror ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
         .ProseMirror ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
-        .ProseMirror p { margin-bottom: 0.5rem; }
+        .ProseMirror p { margin-bottom: 0.75rem; }
       `}</style>
     </div>
   );

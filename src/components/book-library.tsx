@@ -493,9 +493,9 @@ export function BookLibrary() {
                   className="group relative flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100 last:border-b-0 focus-visible:outline-2 focus-visible:outline-brand-600"
                 >
                   {openingId === book.id && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/70" aria-hidden="true">
-                      <span className="w-4 h-4 border-2 border-brand-700 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm font-medium text-slate-700">Opening…</span>
+                    <div className="absolute inset-0 z-10 flex items-center justify-center gap-2.5 bg-brand-50/80 backdrop-blur-[1px]" aria-hidden="true">
+                      <span className="w-5 h-5 border-[3px] border-brand-200 border-t-brand-700 rounded-full animate-spin" />
+                      <span className="text-[13px] font-medium text-brand-800">Opening…</span>
                     </div>
                   )}
                   <button
@@ -540,9 +540,9 @@ export function BookLibrary() {
                   className="group relative bg-white border border-slate-200 rounded-xl p-4 cursor-pointer transition-all duration-150 hover:border-slate-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand-600"
                 >
                   {openingId === book.id && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/70 rounded-xl" aria-hidden="true">
-                      <span className="w-4 h-4 border-2 border-brand-700 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm font-medium text-slate-700">Opening…</span>
+                    <div className="absolute inset-0 z-10 flex items-center justify-center gap-2.5 bg-brand-50/80 backdrop-blur-[1px] rounded-xl" aria-hidden="true">
+                      <span className="w-5 h-5 border-[3px] border-brand-200 border-t-brand-700 rounded-full animate-spin" />
+                      <span className="text-[13px] font-medium text-brand-800">Opening…</span>
                     </div>
                   )}
                   <div className="flex items-start justify-between gap-2 mb-1.5">

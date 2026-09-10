@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Plus, Trash2, Search, FileDown, MoreVertical, ChevronLeft, ChevronRight, ChevronDown, X, PanelTopClose, PanelTopOpen, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Search, FileDown, MoreVertical, ChevronLeft, ChevronRight, ChevronDown, X, PanelTopClose, PanelTopOpen, ArrowLeft, Pencil, Check } from 'lucide-react';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { EditorToolbar } from '@/components/editor-toolbar';
 import { Editor } from '@tiptap/core';
@@ -10,6 +10,7 @@ import { exportBookPdf, exportPagePdf } from '@/lib/export-pdf';
 import { useLoading } from '@/components/global-loader';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { PageLoader } from '@/components/page-loader';
 
 interface Page {
   id: string;
@@ -37,6 +38,8 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
   const [pendingDeletePage, setPendingDeletePage] = useState<Page | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileEditing, setMobileEditing] = useState(false);
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const pageListRef = useRef<HTMLDivElement>(null);
   const [wordLimitWarning, setWordLimitWarning] = useState<string | null>(null);
@@ -167,6 +170,26 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023.5px)');
+    const apply = () => {
+      setIsMobile(mq.matches);
+      if (!mq.matches) setMobileEditing(false);
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  const editable = !isMobile || mobileEditing;
+
+  const toggleMobileEditing = useCallback(() => {
+    setMobileEditing((prev) => {
+      if (prev) activeEditor?.commands.blur();
+      return !prev;
+    });
+  }, [activeEditor]);
 
   useEffect(() => {
     try {
@@ -336,11 +359,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageLoader message="Loading document" className="h-full" />;
   }
 
   if (error) {
@@ -412,12 +431,17 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
               className="flex-1 min-w-0 text-[13px] font-medium text-slate-600 bg-transparent border-none rounded placeholder:text-slate-400 truncate focus-visible:outline-2 focus-visible:outline-brand-600"
               placeholder="Book title"
               aria-label="Book title"
+              readOnly={!editable}
             />
             </div>
-            <div className="hidden h-5 w-px bg-slate-200 md:block" aria-hidden="true" />
-            <div className="flex items-center gap-1 overflow-x-auto py-0.5 md:pl-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
-              <EditorToolbar editor={activeEditor} bare />
-            </div>
+            {editable && (
+              <>
+                <div className="hidden h-5 w-px bg-slate-200 md:block" aria-hidden="true" />
+                <div className="flex items-center gap-1 overflow-x-auto py-0.5 md:pl-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
+                  <EditorToolbar editor={activeEditor} bare />
+                </div>
+              </>
+            )}
             <div className="ml-auto flex flex-shrink-0 items-center gap-1.5">
               <button
                 type="button"
@@ -429,15 +453,17 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
               >
                 <Search className="w-4 h-4" />
               </button>
-              <button
-                onClick={handleAddPage}
-                aria-label="New page"
-                className="flex items-center gap-1 px-2 py-1 text-[13px] text-primary hover:bg-primary/10 rounded-md transition-colors"
-                title="Add page"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden lg:inline">New Page</span>
-              </button>
+              {editable && (
+                <button
+                  onClick={handleAddPage}
+                  aria-label="New page"
+                  className="flex items-center gap-1 px-2 py-1 text-[13px] text-primary hover:bg-primary/10 rounded-md transition-colors"
+                  title="Add page"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden lg:inline">New Page</span>
+                </button>
+              )}
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
@@ -542,6 +568,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
                 className="flex-1 min-w-0 text-sm font-semibold text-slate-900 bg-transparent border-none rounded placeholder:text-slate-500 truncate focus-visible:outline-2 focus-visible:outline-brand-600"
                 placeholder="Page title"
                 aria-label="Page title"
+                readOnly={!editable}
               />
               <div className="relative flex-shrink-0" ref={pageMenuRef}>
                 <button
@@ -563,7 +590,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
                       <FileDown className="w-3.5 h-3.5" />
                       Export PDF
                     </button>
-                    {pages.length > 1 && (
+                    {pages.length > 1 && editable && (
                       <button
                         onClick={() => { setOpenMenuPageId(null); setPendingDeletePage(activePage); }}
                         className="w-full px-3 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
@@ -636,6 +663,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
                   placeholder="Start writing..."
                   className="flex-1 min-h-0"
                   showToolbar={false}
+                  editable={editable}
                   onEditorReady={setActiveEditor}
                 />
               </div>
@@ -717,6 +745,19 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
           )}
         </div>
       </div>
+
+      {isMobile && (
+        <button
+          type="button"
+          onClick={toggleMobileEditing}
+          aria-pressed={mobileEditing}
+          aria-label={mobileEditing ? 'Finish editing' : 'Edit this document'}
+          className="fixed bottom-10 right-4 z-40 flex items-center gap-2 rounded-full bg-brand-700 px-4 py-3 text-sm font-medium text-white shadow-lg transition-all hover:bg-brand-600 active:scale-95"
+        >
+          {mobileEditing ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+          <span>{mobileEditing ? 'Done' : 'Edit'}</span>
+        </button>
+      )}
 
       <Modal
         isOpen={pendingDeletePage !== null}

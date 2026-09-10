@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlobalLoaderProvider } from '@/components/global-loader';
 import { BookLibrary } from '@/components/book-library';
+import { PageLoader } from '@/components/page-loader';
 
 export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -28,11 +29,7 @@ export default function HomePage() {
   };
 
   if (isAuthenticated === null) {
-    return (
-      <div className="h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageLoader message="Checking session" className="h-screen" />;
   }
 
   return (

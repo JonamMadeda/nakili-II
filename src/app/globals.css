@@ -103,3 +103,20 @@
   outline: 2px solid var(--color-brand-600);
   outline-offset: 2px;
 }
+
+/* Branded text interaction: selection wash and caret carry the brand. */
+::selection {
+  background-color: var(--color-brand-100);
+}
+
+.ProseMirror {
+  caret-color: var(--color-brand-700);
+}
+
+/* The editing canvas is focusable (tabindex) for typing, but a focus ring
+   around the whole text box reads as a stray line — the caret is the
+   focus indicator here. */
+.ProseMirror:focus,
+.ProseMirror:focus-visible {
+  outline: none;
+}
