@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Nakili - Multi-Page Note-Taking',
+  title: 'Nakilii - Multi-Page Note-Taking',
   description: 'A secure, multi-page note-taking application with encryption',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Nakili',
+    title: 'Nakilii',
   },
 };
 

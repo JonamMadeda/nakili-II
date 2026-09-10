@@ -1,4 +1,4 @@
-# Nakili - Overview
+# Nakilii - Overview
 
 Secure, multi-page note-taking PWA with end-to-end encryption. Users create "books" (notebooks) containing rich-text pages.
 

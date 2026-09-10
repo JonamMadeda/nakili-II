@@ -1,4 +1,4 @@
-# Nakili - Multi-Page Note-Taking Application
+# Nakilii - Multi-Page Note-Taking Application
 
 A secure, multi-page note-taking Progressive Web App (PWA) with end-to-end encryption.
 

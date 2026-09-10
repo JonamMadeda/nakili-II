@@ -76,7 +76,7 @@ export default function AuthPage() {
           <div className="w-12 h-12 rounded-xl bg-brand-700 flex items-center justify-center mx-auto mb-5">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-handwriting text-slate-900">Nakili</h1>
+          <h1 className="text-2xl font-handwriting text-slate-900">Nakilii</h1>
           <p className="text-sm text-slate-500 mt-1.5">Multi-page note-taking app</p>
         </div>
 

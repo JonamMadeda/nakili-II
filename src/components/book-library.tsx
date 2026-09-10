@@ -187,7 +187,7 @@ export function BookLibrary() {
 
   useEffect(() => {
     try {
-      const v = window.localStorage.getItem('nakili-library-view');
+      const v = window.localStorage.getItem('nakilii-library-view');
       if (v === 'grid' || v === 'list') setViewMode(v);
     } catch {
       // storage unavailable — keep list default
@@ -197,7 +197,7 @@ export function BookLibrary() {
   const changeView = useCallback((mode: 'list' | 'grid') => {
     setViewMode(mode);
     try {
-      window.localStorage.setItem('nakili-library-view', mode);
+      window.localStorage.setItem('nakilii-library-view', mode);
     } catch {
       // ignore storage failures
     }
@@ -304,12 +304,13 @@ export function BookLibrary() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-brand-700 flex items-center justify-center flex-shrink-0">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
-          <h1 className="text-xl font-handwriting text-slate-900 flex-1">Nakili</h1>
+          <h1 className="text-xl font-handwriting text-slate-900 flex-1">Nakilii</h1>
           <button
             type="button"
             onClick={() => router.push('/accounts')}
@@ -318,8 +319,22 @@ export function BookLibrary() {
             Account
           </button>
         </div>
+        </div>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-4">
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div className="flex items-baseline gap-2.5 mb-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Documents</h2>
+          {!isLoading && !fetchError && books.length > 0 && (
+            <span aria-live="polite" className="text-sm text-slate-500">
+              {isSearching
+                ? `${filteredBooks.length} of ${books.length}`
+                : `${books.length} ${books.length === 1 ? 'document' : 'documents'}`}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <div className="relative flex-1" role="search">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
             <input
@@ -370,13 +385,7 @@ export function BookLibrary() {
         </span>
 
         {!isLoading && !fetchError && books.length > 0 && (
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <p aria-live="polite" className="text-xs text-slate-500">
-              {isSearching
-                ? `${filteredBooks.length} of ${books.length} ${books.length === 1 ? 'document' : 'documents'}`
-                : `${books.length} ${books.length === 1 ? 'document' : 'documents'}`}
-            </p>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2 mb-3">
               <div role="group" aria-label="Change view" className="flex gap-0.5 p-0.5 bg-white border border-slate-200 rounded-lg">
                 {(['list', 'grid'] as const).map((mode) => (
                   <button
@@ -415,7 +424,6 @@ export function BookLibrary() {
                   </button>
                 ))}
               </div>
-            </div>
           </div>
         )}
 
@@ -494,7 +502,7 @@ export function BookLibrary() {
                     type="button"
                     title={book.title || 'Untitled'}
                     onClick={() => openBook(book.id)}
-                    className="font-medium text-sm text-slate-900 truncate text-left flex-1 min-w-0 md:flex-none md:max-w-[36%] rounded focus-visible:outline-2 focus-visible:outline-brand-600"
+                    className="font-semibold text-sm text-slate-900 truncate text-left flex-1 min-w-0 md:flex-none md:max-w-[36%] rounded focus-visible:outline-2 focus-visible:outline-brand-600"
                   >
                     {book.title || 'Untitled'}
                   </button>
@@ -542,7 +550,7 @@ export function BookLibrary() {
                       type="button"
                       title={book.title || 'Untitled'}
                       onClick={() => openBook(book.id)}
-                      className="font-medium text-[15px] text-slate-900 truncate text-left flex-1 rounded focus-visible:outline-2 focus-visible:outline-brand-600"
+                      className="font-semibold text-[15px] text-slate-900 truncate text-left flex-1 rounded focus-visible:outline-2 focus-visible:outline-brand-600"
                     >
                       {book.title || 'Untitled'}
                     </button>
@@ -556,7 +564,7 @@ export function BookLibrary() {
                       onDelete={() => { setOpenMenuId(null); setPendingDelete(book); }}
                     />
                   </div>
-                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-3 min-h-[2.5rem]">
+                  <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2 mb-3 min-h-[2.5rem]">
                     {stripHtml(book.preview) || 'No content yet'}
                   </p>
                   <p className="text-[11px] text-slate-500">

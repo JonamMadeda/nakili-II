@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nakili-v1';
+const CACHE_NAME = 'nakilii-v2';
 const OFFLINE_URL = '/';
 
 self.addEventListener('install', (event) => {

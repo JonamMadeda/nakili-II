@@ -3,7 +3,7 @@
 ## Directory Structure
 
 ```
-nakili/
+nakilii/
 ├── .env.example
 ├── drizzle/                    # Drizzle migrations
 │   ├── 0000_worried_hellcat.sql

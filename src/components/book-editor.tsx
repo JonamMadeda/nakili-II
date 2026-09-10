@@ -170,7 +170,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
 
   useEffect(() => {
     try {
-      if (window.localStorage.getItem('nakili-focus-mode') === '1') {
+      if (window.localStorage.getItem('nakilii-focus-mode') === '1') {
         setFocusMode(true);
       }
     } catch {
@@ -181,7 +181,7 @@ export function BookEditor({ bookId, onBack, onSave }: BookEditorProps) {
   const toggleFocusMode = useCallback(() => {
     setFocusMode((prev) => {
       try {
-        window.localStorage.setItem('nakili-focus-mode', prev ? '0' : '1');
+        window.localStorage.setItem('nakilii-focus-mode', prev ? '0' : '1');
       } catch {
         // ignore storage failures
       }

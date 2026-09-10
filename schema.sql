@@ -1,4 +1,4 @@
--- Nakili Database Schema for Neon Postgres
+-- Nakilii Database Schema for Neon Postgres
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
